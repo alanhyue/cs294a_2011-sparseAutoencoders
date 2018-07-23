@@ -42,6 +42,27 @@ b2grad = zeros(size(b2));
 % the gradient descent update to W1 would be W1 := W1 - alpha * W1grad, and similarly for W2, b1, b2. 
 % 
 
+% for i=1:size(data,2)
+for i=1:10
+	a1 = data(:,i);
+	% feed forward
+	z2 = W1*a1 + b1;
+	a2 = sigmoid(z2);
+	z3 = W2*a2 + b2;
+	a3 = sigmoid(z3);
+	h = a3;
+
+	% backpropagation
+	epsilon3 = -(a1-h) .* (a3 .* (1-a3));
+	epsilon2 = (W2' * epsilon3) .* (a2 .* (1-a2));
+
+	% accumulate derivatives
+	W2grad = W2grad + epsilon3 * a2';
+	W1grad = W1grad + epsilon2 * a1';
+	b2grad = b2grad + epsilon3;
+	b1grad = b1grad + epsilon2;
+end
+
 
 
 

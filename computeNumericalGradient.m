@@ -18,10 +18,24 @@ numgrad = zeros(size(theta));
 %                
 % Hint: You will probably want to compute the elements of numgrad one at a time. 
 
+%EPSILON = 0.0001;
+%for i = 1:size(numgrad)
+%	e = zeros(size(theta));
+%	e(i) = 1;
+%	numgrad(i) = (J(theta+e*EPSILON) - J(theta-e*EPSILON)) / (2*EPSILON);
 
-
-
-
+numgrad = zeros(size(theta));
+perturb = zeros(size(theta));
+e = 1e-4;
+for p = 1:numel(theta)
+    % Set perturbation vector
+    perturb(p) = e;
+    loss1 = J(theta - perturb);
+    loss2 = J(theta + perturb);
+    % Compute Numerical Gradient
+    numgrad(p) = (loss2 - loss1) / (2*e);
+    perturb(p) = 0;
+end
 
 
 
