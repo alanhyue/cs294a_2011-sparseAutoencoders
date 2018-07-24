@@ -24,10 +24,9 @@ numgrad = zeros(size(theta));
 %	e(i) = 1;
 %	numgrad(i) = (J(theta+e*EPSILON) - J(theta-e*EPSILON)) / (2*EPSILON);
 
-numgrad = zeros(size(theta));
 perturb = zeros(size(theta));
 e = 1e-4;
-for p = 1:numel(theta)
+for p = 1:size(theta,1)
     % Set perturbation vector
     perturb(p) = e;
     loss1 = J(theta - perturb);

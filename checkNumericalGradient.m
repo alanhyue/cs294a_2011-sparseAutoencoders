@@ -6,8 +6,8 @@ function [] = checkNumericalGradient()
 % solution. Your numerical gradient implementation is incorrect if
 % your numerical solution deviates too much from the analytical solution.
   
-% Evaluate the function and gradient at x = [4; 10]; (Here, x is a 2d vector.)
-x = [4; 10];
+% Evaluate the function and gradient at x = [2; 88]; (Here, x is a 2d vector.)
+x = [2; 88];
 [value, grad] = simpleQuadraticFunction(x);
 
 % Use your code to numerically compute the gradient of simpleQuadraticFunction at x.

@@ -14,13 +14,21 @@
 %  allow your sparse autoencoder to get good filters; you do not need to 
 %  change the parameters below.
 
-visibleSize = 8*8;   % number of input units 
-hiddenSize = 25;     % number of hidden units 
-sparsityParam = 0.01;   % desired average activation of the hidden units.
+%visibleSize = 8*8;   % number of input units 
+%hiddenSize = 25;     % number of hidden units 
+%sparsityParam = 0.01;   % desired average activation of the hidden units.
                      % (This was denoted by the Greek alphabet rho, which looks like a lower-case "p",
 		     %  in the lecture notes). 
+%lambda = 0.0001;     % weight decay parameter       
+%beta = 3;            % weight of sparsity penalty term       
+
+
+% for debugging
+visibleSize = 8*8;   % number of input units 
+hiddenSize = 2;     % number of hidden units 
+sparsityParam = 0.01;
 lambda = 0.0001;     % weight decay parameter       
-beta = 3;            % weight of sparsity penalty term       
+beta = 3;            % weight of sparsity penalty term
 
 %%======================================================================
 %% STEP 1: Implement sampleIMAGES
@@ -28,6 +36,7 @@ beta = 3;            % weight of sparsity penalty term
 %  After implementing sampleIMAGES, the display_network command should
 %  display a random sample of 200 patches from the dataset
 
+disp("sampling images..")
 patches = sampleIMAGES;
 display_network(patches(:,randi(size(patches,2),200,1)),8);
 
@@ -75,7 +84,8 @@ theta = initializeParameters(hiddenSize, visibleSize);
 % First, lets make sure your numerical gradient computation is correct for a
 % simple function.  After you have implemented computeNumericalGradient.m,
 % run the following: 
-checkNumericalGradient();
+checkNumericalGradient();  
+
 
 % Now we can use it to check your cost function and derivative calculations
 % for the sparse autoencoder.  
@@ -125,6 +135,7 @@ options.display = 'on';
 W1 = reshape(opttheta(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
 display_network(W1', 12); 
 
-print -djpeg weights.jpg   % save the visualization to a file 
+fprintf("image out put is disabled");
+% print -djpeg weights.jpg   % save the visualization to a file 
 
 
