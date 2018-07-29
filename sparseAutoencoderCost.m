@@ -43,7 +43,8 @@ b2grad = zeros(size(b2));
 % 
 
 m = size(data,2);
-
+rho = zeros(hiddenSize, 1); % should be same size as a2
+rho_decay_param = 0.999;
 for i=1:m
 	a1 = data(:,i);
 	% feed forward
@@ -64,12 +65,16 @@ for i=1:m
 	W1grad = W1grad + epsilon2 * a1';
 	b2grad = b2grad + epsilon3;
 	b1grad = b1grad + epsilon2;
-end
 
+	% track expectations of activation of each neuron
+	rho = rho_decay_param * rho + (1 - rho_decay_param) * a2;
+	% update bias terms accordingly
+	b1 = b1 - lambda * beta * (rho - sparsityParam);
+end
 W2grad = 1/m * W2grad + lambda * W2;
 W1grad = 1/m * W1grad + lambda * W1;
-b2grad = 1/m * b2grad;
-b1grad = 1/m * b1grad;
+b2grad = 1/m * b2grad ;
+b1grad = 1/m * b1grad ;
 
 cost = 1/m * cost + lambda / 2 * (sum(sum(W1 .^ 2)) + sum(sum(W2 .^ 2)));
 
