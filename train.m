@@ -78,7 +78,6 @@ theta = initializeParameters(hiddenSize, visibleSize);
 % simple function.  After you have implemented computeNumericalGradient.m,
 % run the following: 
 
-%{
 checkNumericalGradient();  
 
 
@@ -87,7 +86,7 @@ checkNumericalGradient();
 numgrad = computeNumericalGradient( @(x) sparseAutoencoderCost(x, visibleSize, ...
                                                   hiddenSize, lambda, ...
                                                   sparsityParam, beta, ...
-                                                  patches), theta);
+                                                  patches(:,1:10)), theta);
 
 % Use this to visually compare the gradients side by side
 disp([numgrad grad]); 
@@ -98,7 +97,7 @@ disp(diff); % Should be small. In our implementation, these values are
             % usually less than 1e-9.
 
             % When you got this working, Congratulations!!! 
-%}
+
 %%======================================================================
 %% STEP 4: After verifying that your implementation of
 %  sparseAutoencoderCost is correct, You can start training your sparse
@@ -114,7 +113,7 @@ options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
                           % need a function pointer with two outputs: the
                           % function value and the gradient. In our problem,
                           % sparseAutoencoderCost.m satisfies this.
-options.maxIter = 1000;	  % Maximum number of iterations of L-BFGS to run 
+options.maxIter = 400;	  % Maximum number of iterations of L-BFGS to run 
 options.display = 'on';
 
 

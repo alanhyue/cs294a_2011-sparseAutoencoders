@@ -42,43 +42,59 @@ b2grad = zeros(size(b2));
 % the gradient descent update to W1 would be W1 := W1 - alpha * W1grad, and similarly for W2, b1, b2. 
 % 
 
-m = size(data,2);
-rho = zeros(hiddenSize, 1); % should be same size as a2
-rho_decay_param = 0.999;
-for i=1:m
+ m = size(data,2);
+
+
+A1 = zeros(visibleSize, m);
+A2 = zeros(hiddenSize, m);
+A3 = zeros(visibleSize, m);
+
+% forward pass to calculate and store activations
+for i = 1:m
 	a1 = data(:,i);
 	% feed forward
 	z2 = W1*a1 + b1;
 	a2 = sigmoid(z2);
 	z3 = W2*a2 + b2;
 	a3 = sigmoid(z3);
-	h = a3;
-	
-	cost = cost + 0.5 * sum((a1-h).^2); 
 
-	% backpropagation
-	epsilon3 = -(a1-h) .* (a3 .* (1-a3));
-	epsilon2 = (W2' * epsilon3) .* (a2 .* (1-a2));
+	cost = cost + 0.5 * sum((a1-a3) .^2);
+	% store activations
+	A1(:,i) = a1;
+	A2(:,i) = a2;
+	A3(:,i) = a3;
+end
+
+% calculate estimated rho, which is the avg. actication of units over the whole training set
+rho =  1 / m * sum(A2,2);
+
+% do backprop with rho
+for i = 1:m
+	% unpack weights
+	a1 = A1(:,i);
+	a2 = A2(:,i);
+	a3 = A3(:,i);
+
+	% get derivatives
+	epsilon3 = -(a1-a3) .* (a3 .* (1-a3));
+	epsilon2 = (W2' * epsilon3 + beta .* (-sparsityParam ./ rho + (1 - sparsityParam) ./ (1 - rho))) .* (a2 .* (1-a2));
 
 	% accumulate derivatives
 	W2grad = W2grad + epsilon3 * a2';
 	W1grad = W1grad + epsilon2 * a1';
 	b2grad = b2grad + epsilon3;
 	b1grad = b1grad + epsilon2;
-
-	% track expectations of activation of each neuron
-	rho = rho_decay_param * rho + (1 - rho_decay_param) * a2;
-	% update bias terms accordingly
-	b1 = b1 - lambda * beta * (rho - sparsityParam);
 end
+
 W2grad = 1/m * W2grad + lambda * W2;
 W1grad = 1/m * W1grad + lambda * W1;
 b2grad = 1/m * b2grad ;
 b1grad = 1/m * b1grad ;
 
+
 cost = 1/m * cost + lambda / 2 * (sum(sum(W1 .^ 2)) + sum(sum(W2 .^ 2)));
-
-
+KL = sparsityParam * log( sparsityParam ./ rho ) + (1 - sparsityParam) * log( (1 - sparsityParam) ./ (1 - rho));
+cost = cost + beta * sum(KL);
 
 
 
