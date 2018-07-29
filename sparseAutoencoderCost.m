@@ -66,12 +66,12 @@ for i=1:m
 	b1grad = b1grad + epsilon2;
 end
 
-W2grad = 1/m * W2grad;
-W1grad = 1/m * W1grad;
+W2grad = 1/m * W2grad + lambda * W2;
+W1grad = 1/m * W1grad + lambda * W1;
 b2grad = 1/m * b2grad;
 b1grad = 1/m * b1grad;
 
-cost = 1/m * cost;
+cost = 1/m * cost + lambda / 2 * (sum(sum(W1 .^ 2)) + sum(sum(W2 .^ 2)));
 
 
 

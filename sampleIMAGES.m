@@ -31,11 +31,9 @@ maxpos = 504;
 for i = 1:numpatches
 	numimage = randi(10);
 	startpos = randi(maxpos);
-	block = IMAGES(startpos : startpos+patchsize-1,
-			startpos : startpos+patchsize-1,
-			numimage);
+	block = IMAGES(startpos : startpos+patchsize-1,	startpos : startpos+patchsize-1, numimage);
 	patches(:, i) = reshape(block, 64, 1);
-endfor
+end
 
 
 
