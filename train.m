@@ -65,7 +65,7 @@ theta = initializeParameters(hiddenSize, visibleSize);
 %  gave in Step 0 above.
 
 [cost, grad] = sparseAutoencoderCost(theta, visibleSize, hiddenSize, lambda, ...
-                                     sparsityParam, beta, patches);
+                                     sparsityParam, beta, patches(:,1:10));
 
 %%======================================================================
 %% STEP 3: Gradient Checking
@@ -87,7 +87,7 @@ numgrad = computeNumericalGradient( @(x) sparseAutoencoderCost(x, visibleSize, .
                                                   hiddenSize, lambda, ...
                                                   sparsityParam, beta, ...
                                                   patches(:,1:10)), theta);
-
+size(numgrad)
 % Use this to visually compare the gradients side by side
 disp([numgrad grad]); 
 

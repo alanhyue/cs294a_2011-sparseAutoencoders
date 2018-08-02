@@ -45,46 +45,31 @@ b2grad = zeros(size(b2));
  m = size(data,2);
 
 
-A1 = zeros(visibleSize, m);
-A2 = zeros(hiddenSize, m);
-A3 = zeros(visibleSize, m);
+%% vectorized implementation
 
-% forward pass to calculate and store activations
-for i = 1:m
-	a1 = data(:,i);
-	% feed forward
-	z2 = W1*a1 + b1;
-	a2 = sigmoid(z2);
-	z3 = W2*a2 + b2;
-	a3 = sigmoid(z3);
+% Forward pass
+A1 = data;
+z2 = W1*A1 + b1;
+A2 = sigmoid(z2);
+z3 = W2*A2 + b2;
+A3 = sigmoid(z3);
+% h = a3
 
-	cost = cost + 0.5 * sum((a1-a3) .^2);
-	% store activations
-	A1(:,i) = a1;
-	A2(:,i) = a2;
-	A3(:,i) = a3;
-end
+error = A1 - A3;
+cost = 0.5 * sum(error(:) .^ 2);
 
 % calculate estimated rho, which is the avg. actication of units over the whole training set
 rho =  1 / m * sum(A2,2);
 
 % do backprop with rho
-for i = 1:m
-	% unpack weights
-	a1 = A1(:,i);
-	a2 = A2(:,i);
-	a3 = A3(:,i);
+delta3 = -(A1 - A3) .* (A3 .* (1 - A3));
+delta2 = (W2' * delta3 + beta .* (-sparsityParam ./ rho + (1 - sparsityParam) ./ (1 - rho))) .* A2 .* (1 - A2);
 
-	% get derivatives
-	epsilon3 = -(a1-a3) .* (a3 .* (1-a3));
-	epsilon2 = (W2' * epsilon3 + beta .* (-sparsityParam ./ rho + (1 - sparsityParam) ./ (1 - rho))) .* (a2 .* (1-a2));
+W2grad = delta3 * A2';
+W1grad = delta2 * A1';
+b2grad = sum(delta3, 2);
+b1grad = sum(delta2, 2);
 
-	% accumulate derivatives
-	W2grad = W2grad + epsilon3 * a2';
-	W1grad = W1grad + epsilon2 * a1';
-	b2grad = b2grad + epsilon3;
-	b1grad = b1grad + epsilon2;
-end
 
 W2grad = 1/m * W2grad + lambda * W2;
 W1grad = 1/m * W1grad + lambda * W1;
@@ -95,16 +80,6 @@ b1grad = 1/m * b1grad ;
 cost = 1/m * cost + lambda / 2 * (sum(sum(W1 .^ 2)) + sum(sum(W2 .^ 2)));
 KL = sparsityParam * log( sparsityParam ./ rho ) + (1 - sparsityParam) * log( (1 - sparsityParam) ./ (1 - rho));
 cost = cost + beta * sum(KL);
-
-
-
-
-
-
-
-
-
-
 
 
 
