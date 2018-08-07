@@ -1,6 +1,7 @@
 import numpy as np
 from functools import partial
 import matplotlib.pyplot as plt
+from scipy.optimize import fmin_l_bfgs_b
 
 def normalizeData(patches):
     # Remove DC (mean of images)
@@ -86,7 +87,7 @@ def display_network(A):
         if col_cnt >= cols:
             row_cnt += 1
             col_cnt = 0
-    plt.imshow(array, cmap='gray')
+    plt.imshow(array, cmap='gray', interpolation='nearest')
     plt.show()
 
 def computeNumericalGradient(J, theta):
@@ -188,14 +189,11 @@ def sparseAutoencoderCost(theta,
     """
     def sigmoid(x):
         return 1 / (1 + np.exp(-x))
-    def drv_sigmoid(x):
-        v = sigmoid(x)
-        return v * (1 - v)
     # unroll parameters in theta
     W1 = theta[:hiddenSize*visibleSize].reshape(hiddenSize, visibleSize)
     W2 = theta[hiddenSize*visibleSize:2*hiddenSize*visibleSize].reshape(visibleSize, hiddenSize)
-    b1 = theta[2*hiddenSize*visibleSize:2*hiddenSize*visibleSize+hiddenSize].reshape(-1,1)
-    b2 = theta[2*hiddenSize*visibleSize+hiddenSize:].reshape(-1,1)
+    b1 = theta[2*hiddenSize*visibleSize:2*hiddenSize*visibleSize+hiddenSize].reshape(hiddenSize,1)
+    b2 = theta[2*hiddenSize*visibleSize+hiddenSize:].reshape(visibleSize,1)
 
     # Cost and gradient variables (your code needs to compute these values). 
     # Here, we initialize them to zeros.
@@ -216,14 +214,13 @@ def sparseAutoencoderCost(theta,
     A3 = sigmoid(z3)
 
     error = A1 - A3
-    cost = 0.5 * np.sum(error**2)
 
     # calculate estimated activiation value, rho.
     rho = 1 / m * np.sum(A2,1).reshape(-1,1)
 
     # backprop with rho
-    delta3 = -(A1 - A3) * drv_sigmoid(z3)
-    delta2 = (W2.T @ delta3 + beta_ * (-sparsityParam / rho + (1 - sparsityParam) / (1 - rho))) * drv_sigmoid(z2)
+    delta3 = -(A1 - A3) * A3 * (1 - A3)
+    delta2 = (W2.T @ delta3 + beta_ * (-sparsityParam / rho + (1 - sparsityParam) / (1 - rho))) * A2 * (1 - A2)
 
     W2grad = delta3 @ A2.T
     W1grad = delta2 @ A1.T
@@ -235,10 +232,11 @@ def sparseAutoencoderCost(theta,
     b2grad = 1/m * b2grad
     b1grad = 1/m * b1grad
 
-    # adjust costs with regularization and sparsity constriants
-    cost = 1/m * cost + lambda_ / 2 * sum([np.sum(W1**2), np.sum(W2**2)])
-    KL = sparsityParam * np.log(sparsityParam / rho) + (1 - sparsityParam) * np.log((1 - sparsityParam) / (1 - rho))
-    cost = cost + beta_ * np.sum(KL)
+    # compute cost and adjust costs with regularization and sparsity constriants
+    mean_squared_error = 1 / m * np.sum(error**2)
+    regularization_part = lambda_ / 2 * sum([np.sum(W1**2), np.sum(W2**2)])
+    sparsity_part = sparsityParam * np.log(sparsityParam / rho) + (1 - sparsityParam) * np.log((1 - sparsityParam) / (1 - rho))
+    cost = 0.5 * mean_squared_error + regularization_part + beta_ * np.sum(sparsity_part)
 
     # roll up cost and gradients to a vector format (suitable for minFunc)
     grad = np.hstack([W1grad.ravel(), W2grad.ravel(), b1grad.ravel(), b2grad.ravel()])
@@ -289,6 +287,26 @@ def train():
     diff = np.linalg.norm(numgrad-grad)/np.linalg.norm(numgrad+grad)
     print("the difference between numerial gradients and your gradients is {}".format(diff))
     print("the difference should be very small. Usually less than 1e-9")
+
+    ## STEP 4: Train the sparse autoencoder with L-BFGS
+    
+    # randomly initialize parameters
+    theta = initializeParameters(hiddenSize, visibleSize)
+
+    partialCost = partial(sparseAutoencoderCost,visibleSize=visibleSize,
+                                    hiddenSize=hiddenSize,
+                                    lambda_=lambda_,
+                                    sparsityParam=sparsityParam,
+                                    beta_=beta_,
+                                    data=patches)
+    opttheta, cost, info = fmin_l_bfgs_b(partialCost, theta, 
+                                            maxiter=400, disp=1)
+
+    # print(info)
+
+    ## STEP 5: Visualization
+    W1 = opttheta[:hiddenSize*visibleSize].reshape(hiddenSize, visibleSize)
+    display_network(W1.T)
 
 
 
